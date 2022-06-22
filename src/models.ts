@@ -6,6 +6,6 @@ export enum Action {
     mouseLeft = 'mouse_left',
     printScreen = 'prnt_scrn',
     drawCircle = 'draw_circle',
-    drawRectangle = 'draw_rectangle',
+    drawRectangular = 'draw_rectangle',
     drawSquare = 'draw_square'
 }
