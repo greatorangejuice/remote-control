@@ -28,8 +28,7 @@ const asyncSwitch = async (action: Action, size?: Size | undefined) => {
             }
             return Action.drawRectangular
         case Action.printScreen:
-            return getScreenshot()
-            // return Action.printScreen
+            return `${Action.printScreen} ${await getScreenshot()}`
         case Action.mouseUp:
             return Action.mouseUp
         case Action.mouseRight:
@@ -86,37 +85,27 @@ const drawRectangular = (width: number, length: number): void => {
 }
 
 const getScreenshot = async () => {
-    // robot.screen.capture(100, 100, 200, 200)
+    const mousePos = robot.getMousePos();
+    const x = mousePos.x;
+    const y = mousePos.y;
     const width = 200;
     const height = 200;
-    const pic = robot.screen.capture(0, 0, width, height);
-    console.log(pic)
-    return `${Action.printScreen} ${pic}`
-    // @ts-ignore
-    // screenCaptureToFile2(pic).then((data)=> {
-    //     console.log('Data', data)
-    // })
-}
 
-function screenCaptureToFile2(robotScreenPic: robot.Bitmap, path: string | undefined) {
-    return new Promise((resolve, reject) => {
-        try {
-            const image = new Jimp(robotScreenPic.width, robotScreenPic.height);
-            let pos = 0;
-            image.scan(0, 0, image.bitmap.width, image.bitmap.height, (x, y, idx) => {
-                image.bitmap.data[idx + 2] = robotScreenPic.image.readUInt8(pos++);
-                image.bitmap.data[idx + 1] = robotScreenPic.image.readUInt8(pos++);
-                image.bitmap.data[idx + 0] = robotScreenPic.image.readUInt8(pos++);
-                image.bitmap.data[idx + 3] = robotScreenPic.image.readUInt8(pos++);
-            });
-            return `${Action.printScreen} ${image}`
-            // @ts-ignore
-            image.write(path, resolve);
-
-        } catch (e) {
-            console.error(e);
-            reject(e);
-        }
+    const screen = robot.screen.capture(
+        x - width / 2,
+        y - height / 2,
+        width,
+        height
+    );
+    const image = new Jimp({
+        data: screen.image,
+        width,
+        height
     });
+
+    const imageBuffer = await image.getBase64Async('image/png');
+    const [, base64String] =  imageBuffer.split(',');
+    return base64String;
 }
+
 
