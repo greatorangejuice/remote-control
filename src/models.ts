@@ -9,3 +9,8 @@ export enum Action {
     drawRectangular = 'draw_rectangle',
     drawSquare = 'draw_square'
 }
+
+export interface Size {
+    width: number | undefined;
+    length: number | undefined
+}

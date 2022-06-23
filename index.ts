@@ -11,10 +11,10 @@ httpServer.listen(HTTP_PORT);
 
 const wss = new WebSocketServer({port: 8080});
 
-wss.on('connection', function connection(ws) {
+wss.on('connection', function connection(ws): void {
     console.log('Connected')
     const duplex = createWebSocketStream(ws, {encoding: 'utf8', decodeStrings: false})
-        duplex.on('data', (data: any) => {
+        duplex.on('data', async (data: any) => {
             const action: Array<string | number> = data.toString().split(' ') || null;
             let width: number | undefined;
             let length: number | undefined;
@@ -23,8 +23,8 @@ wss.on('connection', function connection(ws) {
                 length = Number(action[2]) || undefined;
             }
             const sizes = {width, length}
-            const message = messageHandler(action[0] as Action, sizes)
+            const message = await messageHandler(action[0] as Action, sizes)
+            console.log(message)
             duplex.write(message)
         })
-
 });

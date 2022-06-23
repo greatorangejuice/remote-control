@@ -1,44 +1,48 @@
-import {Action} from "./models";
+import {Action, Size} from "./models";
 import robot from "robotjs";
+import Jimp from 'jimp';
 
-export const messageHandler = (action: Action, size?: { width: number | undefined, length: number | undefined }): string => {
+export const messageHandler = async (action: Action, size?: Size) => {
+   return await asyncSwitch(action, size)
+}
+
+const asyncSwitch = async (action: Action, size?: Size | undefined) => {
     let {x, y} = robot.getMousePos()
-    let isActive = false;
     switch (action) {
         case Action.mousePosition:
-            return `mouse_position ${x},${y}`
+            return `${Action.mousePosition} ${x},${y}`
         case Action.drawCircle:
-            if (size && size.width && !isActive) {
-                isActive = true;
+            if (size && size.width) {
                 drawCircle(size.width);
-                isActive = false;
                 return `draw_circle with radius: ${size.width}`
             }
-            return `draw_circle`
+            return Action.drawCircle
         case Action.drawSquare:
             if (size && size.width) {
                 drawSquare(size.width);
             }
-            return `draw square`
+            return Action.drawSquare
         case Action.drawRectangular:
-                if (size && size.width && size.length) {
-                    drawRectangular(size.width, size.length)
-                }
-            return `draw_rectangular`
+            if (size && size.width && size.length) {
+                drawRectangular(size.width, size.length)
+            }
+            return Action.drawRectangular
         case Action.printScreen:
-            return 'print_screen'
+            return getScreenshot()
+            // return Action.printScreen
         case Action.mouseUp:
-            return 'mouse_up'
+            return Action.mouseUp
         case Action.mouseRight:
-            return 'mouse_right'
+            return Action.mouseRight
         case Action.mouseDown:
-            return 'mouse_down'
+            return Action.mouseDown
         case Action.mouseLeft:
-            return 'mouse_left'
+            return Action.mouseLeft
     }
+
 }
 
-const drawCircle = (radius: number):void => {
+const drawCircle = (radius: number): void => {
     const mousePos = robot.getMousePos();
 
     for (let i = 0; i <= Math.PI * 2; i += 0.01) {
@@ -55,7 +59,7 @@ const drawLine = (x: number, y: number): void => {
     robot.mouseToggle('up', 'left')
 }
 
-const drawSquare = (width: number):void => {
+const drawSquare = (width: number): void => {
     const mousePos = robot.getMousePos();
     const x = mousePos.x;
     const y = mousePos.y;
@@ -69,7 +73,7 @@ const drawSquare = (width: number):void => {
 
 }
 
-const drawRectangular = (width: number, length: number):void => {
+const drawRectangular = (width: number, length: number): void => {
     const mousePos = robot.getMousePos();
     const x = mousePos.x;
     const y = mousePos.y;
@@ -80,3 +84,39 @@ const drawRectangular = (width: number, length: number):void => {
     drawLine(x, y1);
     drawLine(x, y);
 }
+
+const getScreenshot = async () => {
+    // robot.screen.capture(100, 100, 200, 200)
+    const width = 200;
+    const height = 200;
+    const pic = robot.screen.capture(0, 0, width, height);
+    console.log(pic)
+    return `${Action.printScreen} ${pic}`
+    // @ts-ignore
+    // screenCaptureToFile2(pic).then((data)=> {
+    //     console.log('Data', data)
+    // })
+}
+
+function screenCaptureToFile2(robotScreenPic: robot.Bitmap, path: string | undefined) {
+    return new Promise((resolve, reject) => {
+        try {
+            const image = new Jimp(robotScreenPic.width, robotScreenPic.height);
+            let pos = 0;
+            image.scan(0, 0, image.bitmap.width, image.bitmap.height, (x, y, idx) => {
+                image.bitmap.data[idx + 2] = robotScreenPic.image.readUInt8(pos++);
+                image.bitmap.data[idx + 1] = robotScreenPic.image.readUInt8(pos++);
+                image.bitmap.data[idx + 0] = robotScreenPic.image.readUInt8(pos++);
+                image.bitmap.data[idx + 3] = robotScreenPic.image.readUInt8(pos++);
+            });
+            return `${Action.printScreen} ${image}`
+            // @ts-ignore
+            image.write(path, resolve);
+
+        } catch (e) {
+            console.error(e);
+            reject(e);
+        }
+    });
+}
+
