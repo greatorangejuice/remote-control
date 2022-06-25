@@ -24,7 +24,9 @@ wss.on('connection', function connection(ws): void {
             }
             const sizes = {width, length}
             const message = await messageHandler(action[0] as Action, sizes)
-            console.log(message)
-            duplex.write(message)
+            duplex.write(message+'\0')
         })
 });
+wss.on('close', () => {
+    console.log('Closed')
+})
