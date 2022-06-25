@@ -4,15 +4,19 @@ import {messageHandler} from "./src/message.handler";
 import {Action} from "./src/models";
 
 const HTTP_PORT = 3000;
+const WS_PORT = 8080;
 
 console.log(`Start static http server on the ${HTTP_PORT} port!`);
 httpServer.listen(HTTP_PORT);
 
 
-const wss = new WebSocketServer({port: 8080});
+const wss = new WebSocketServer({port: WS_PORT});
+wss.on('listening', () => {
+    console.log(`Listening on port: ${WS_PORT}`)
+})
 
 wss.on('connection', function connection(ws): void {
-    console.log('Connected')
+    console.log(`Connected `)
     const duplex = createWebSocketStream(ws, {encoding: 'utf8', decodeStrings: false})
         duplex.on('data', async (data: any) => {
             const action: Array<string | number> = data.toString().split(' ') || null;
