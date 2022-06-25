@@ -1,9 +1,11 @@
 import {Action, Size} from "./models";
 import robot from "robotjs";
-import Jimp from 'jimp';
+import {getScreenshot} from "./draw_handlers/screenshot";
+import {drawRectangular, drawSquare} from "./draw_handlers/square";
+import {drawCircle} from "./draw_handlers/circle";
 
 export const messageHandler = async (action: Action, size?: Size) => {
-   return await asyncSwitch(action, size)
+    return await asyncSwitch(action, size)
 }
 
 const asyncSwitch = async (action: Action, size?: Size | undefined) => {
@@ -40,72 +42,4 @@ const asyncSwitch = async (action: Action, size?: Size | undefined) => {
     }
 
 }
-
-const drawCircle = (radius: number): void => {
-    const mousePos = robot.getMousePos();
-
-    for (let i = 0; i <= Math.PI * 2; i += 0.01) {
-        const x = mousePos.x + (radius * Math.cos(i));
-        const y = mousePos.y + (radius * Math.sin(i));
-        robot.mouseClick();
-        robot.dragMouse(x, y);
-    }
-};
-
-const drawLine = (x: number, y: number): void => {
-    robot.mouseToggle('down', 'left')
-    robot.dragMouse(x, y);
-    robot.mouseToggle('up', 'left')
-}
-
-const drawSquare = (width: number): void => {
-    const mousePos = robot.getMousePos();
-    const x = mousePos.x;
-    const y = mousePos.y;
-    const x1 = x + width;
-    const y1 = y + width;
-
-    drawLine(x1, y);
-    drawLine(x1, y1);
-    drawLine(x, y1);
-    drawLine(x, y);
-
-}
-
-const drawRectangular = (width: number, length: number): void => {
-    const mousePos = robot.getMousePos();
-    const x = mousePos.x;
-    const y = mousePos.y;
-    const x1 = x + width;
-    const y1 = y + length;
-    drawLine(x1, y);
-    drawLine(x1, y1);
-    drawLine(x, y1);
-    drawLine(x, y);
-}
-
-const getScreenshot = async () => {
-    const mousePos = robot.getMousePos();
-    const x = mousePos.x;
-    const y = mousePos.y;
-    const width = 200;
-    const height = 200;
-
-    const screen = robot.screen.capture(
-        x - width / 2,
-        y - height / 2,
-        width,
-        height
-    );
-    const image = new Jimp({
-        data: screen.image,
-        width,
-        height
-    });
-
-    const imageBuffer = await image.getBase64Async('image/png');
-    const [, base64String] =  imageBuffer.split(',');
-    return base64String;
-}
-
 
